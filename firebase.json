@@ -1,0 +1,41 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "social-impact-mvp-prod-b6805",
+          "appId": "1:710632497382:android:228a47ca36439a70f09b27",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "social-impact-mvp-prod-b6805",
+          "configurations": {
+            "android": "1:710632497382:android:228a47ca36439a70f09b27",
+            "ios": "1:710632497382:ios:f139bc696b44badff09b27",
+            "web": "1:710632497382:web:39fef18b7d76a76af09b27"
+          }
+        }
+      }
+    }
+  }
+}

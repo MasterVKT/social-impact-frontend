@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users: lecture publique minimale (champs non sensibles), écriture propriétaire
+    match /users/{uid} {
+      allow read: if true; // Ajuster: filtrer côté client les champs affichés publiquement
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      // Optionnel: sous-champs sensibles
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Portfolio: lecture propriétaire, écriture via systèmes
+    match /user_portfolio/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // utiliser Cloud Functions ou rôles système
+    }
+
+    // Activities: lecture propriétaire, écriture propriétaire/système
+    match /user_activities/{uid}/items/{activityId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Achievements: lecture propriétaire, écriture système
+    match /user_achievements/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Reports: création par tout utilisateur authentifié
+    match /reports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false; // réservé à l’admin
+    }
+
+    // Messages: lecture/écriture par participants seulement
+    match /messages/{threadId} {
+      allow read, write: if request.auth != null && request.resource.data.participants.hasAny([request.auth.uid]);
+
+      match /items/{msgId} {
+        allow create: if request.auth != null && get(/databases/$(database)/documents/messages/$(threadId)).data.participants.hasAny([request.auth.uid]);
+        allow read: if request.auth != null && get(/databases/$(database)/documents/messages/$(threadId)).data.participants.hasAny([request.auth.uid]);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

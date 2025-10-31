@@ -1,0 +1,26 @@
+{ "defaultMode": "acceptEdits",
+  "permissions": {
+    "allow": [
+	  "Bash(mkdir:*)",
+      "Write(*)",
+	  "Edit",
+      "Bash(flutter run -d web-server)",
+      "Bash(flutter test)",
+      "Bash(flutter analyze)", 
+      "Bash(flutter build *)",
+      "Bash(dart run build_runner build)",
+      "Read(./lib/**)",
+      "Read(./docs/**)",
+      "Write(./lib/**)",
+      "Write(./test/**)",
+      "Write(./pubspec.yaml)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)"
+    ]
+  },
+  "model": "claude-sonnet-4-20250514"
+}

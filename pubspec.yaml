@@ -1,0 +1,115 @@
+name: social_impact_mvp
+description: Social Finance Impact Platform MVP - Mobile + Web
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+  flutter: ">=3.13.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Firebase Core Multi-Platform
+  firebase_core: ^2.15.0
+  firebase_auth: ^4.7.2
+  cloud_firestore: ^4.8.4
+  # firebase_storage: ^11.2.5  # Temporarily disabled due to web compilation issues
+  firebase_analytics: ^10.4.5
+  cloud_functions: ^4.3.3
+  # firebase_messaging: ^14.6.6  # Temporarily disabled due to web compilation issues
+
+  # State Management Universal
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navigation Multi-Platform
+  go_router: ^12.1.3
+  url_strategy: ^0.2.0
+
+  # UI Universal
+  intl: ^0.19.0
+  cached_network_image: ^3.3.1
+
+  # Platform Detection
+  device_info_plus: ^9.1.0
+  connectivity_plus: ^4.0.2
+  package_info_plus: ^4.2.0
+
+  # Authentication Multi-Platform
+  google_sign_in: ^6.2.1
+  sign_in_with_apple: ^5.0.0
+
+  # Storage Adaptatif
+  shared_preferences: ^2.2.2
+  universal_html: ^2.2.4
+  flutter_secure_storage: ^9.0.0
+
+  # Permissions (Mobile uniquement)
+  permission_handler: ^11.0.1
+
+  # Biométrie (Mobile uniquement)
+  local_auth: ^2.1.6
+  # Désactivé pour Windows en raison de problèmes de dépendances NuGet
+  local_auth_platform_interface: ^1.0.8
+
+  # File System
+  path_provider: ^2.1.1
+
+  # HTTP et APIs
+  dio: ^5.4.0
+  http: ^1.1.2
+
+  # Utils
+  logger: ^2.0.2+1
+  equatable: ^2.0.5
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # Génération de code
+  build_runner: ^2.4.6
+  json_serializable: ^6.7.1
+  freezed: ^2.4.5
+  riverpod_generator: ^2.3.0
+
+  # Tests
+  mockito: ^5.4.2
+
+  # Configuration
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.2
+
+  # Analyse
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: "assets/images/icon.png"
+    background_color: "#2563EB"
+    theme_color: "#2563EB"
+
+flutter_native_splash:
+  color: "#2563EB"
+  image: assets/images/splash.png
+  android: true
+  ios: true
+  web: true

@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "710632497382",
+    "project_id": "social-impact-mvp-prod-b6805",
+    "storage_bucket": "social-impact-mvp-prod-b6805.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710632497382:android:228a47ca36439a70f09b27",
+        "android_client_info": {
+          "package_name": "com.example.social_impact_mvp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "710632497382-v0ta36atnp6angvg9b5ft6e9ncgj0ocr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.social_impact_mvp",
+            "certificate_hash": "7457627233bd401c58c1e0add55a45302418715e"
+          }
+        },
+        {
+          "client_id": "710632497382-75b2npqi7n9iev606qlug82bo8k1828m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFZxFtqyd0MQZDgC-gofKB5LuLLdkUoMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "710632497382-75b2npqi7n9iev606qlug82bo8k1828m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "710632497382-urb3d0pbnk2ipfrou50mkdk07rdjipt3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.socialImpactMvp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
