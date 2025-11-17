@@ -26,10 +26,10 @@ class InvestmentsFirestoreDataSource {
 
     if (filters != null) {
       if (filters.from != null) {
-        q = q.where('createdAt', isGreaterThanOrEqualTo: filters.from);
+        q = q.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(filters.from!));
       }
       if (filters.to != null) {
-        q = q.where('createdAt', isLessThanOrEqualTo: filters.to);
+        q = q.where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(filters.to!));
       }
       if (filters.statuses != null && filters.statuses!.isNotEmpty) {
         q = q.where('status', whereIn: filters.statuses!.map((e) => e.name).toList());
@@ -41,7 +41,7 @@ class InvestmentsFirestoreDataSource {
     }
 
     if (startAfter != null) {
-      q = (q as Query<Map<String, dynamic>>).startAfterDocument(startAfter);
+      q = q.startAfterDocument(startAfter);
     }
 
     final snap = await q.get();

@@ -327,12 +327,6 @@ class _AdaptiveNavigationWrapperState extends ConsumerState<AdaptiveNavigationWr
             route: '/investments',
           ),
           const NavigationItem(
-            label: 'Portfolio',
-            icon: Icons.account_balance_wallet_outlined,
-            activeIcon: Icons.account_balance_wallet,
-            route: '/portfolio',
-          ),
-          const NavigationItem(
             label: 'Browse',
             icon: Icons.search_outlined,
             activeIcon: Icons.search,

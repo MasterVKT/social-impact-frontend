@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/dashboard_page.dart';
-import '../../features/investments/presentation/screens/portfolio_screen.dart';
+import '../../features/investments/presentation/screens/investments_screen.dart';
 import '../../features/investments/presentation/screens/browse_projects_screen.dart';
 import '../../features/organizations/presentation/screens/organization_dashboard_screen.dart';
 import '../../features/transactions/presentation/screens/transactions_screen.dart';
@@ -40,14 +40,27 @@ class AppRouter {
       GoRoute(
         path: '/investments',
         name: 'investments',
-        builder: (context, state) => const PortfolioScreen(),
+        builder: (context, state) => const InvestmentsScreen(),
       ),
-      
-      // Project Routes  
+
+      // Portfolio Route (redirect to investments for backward compatibility)
+      GoRoute(
+        path: '/portfolio',
+        redirect: (context, state) => '/investments',
+      ),
+
+      // Project Routes
       GoRoute(
         path: '/projects',
         name: 'projects',
         builder: (context, state) => const BrowseProjectsScreen(),
+      ),
+
+      // Browse Route (alias for /projects)
+      GoRoute(
+        path: '/browse',
+        name: 'browse',
+        redirect: (context, state) => '/projects',
       ),
       
       // Organization Routes

@@ -13,7 +13,7 @@ class AnalyticsService {
       name: 'view_profile',
       parameters: {
         'viewed_user_id': viewedUserId ?? 'current',
-        'is_owner': isOwner,
+        'is_owner': isOwner ? 'true' : 'false', // Convert boolean to string for Firebase Analytics
       },
     );
   }
@@ -80,6 +80,59 @@ class AnalyticsService {
       name: 'update_profile_photo',
       parameters: {
         'user_id': userId,
+      },
+    );
+  }
+
+  Future<void> logViewInvestmentsPage() async {
+    await _analytics.logEvent(
+      name: 'view_investments_page',
+      parameters: {},
+    );
+  }
+
+  Future<void> logViewInvestmentsTab({required String tab}) async {
+    await _analytics.logEvent(
+      name: 'view_investments_tab',
+      parameters: {
+        'tab': tab,
+      },
+    );
+  }
+
+  Future<void> logFilterContributions({required Map<String, dynamic> filters}) async {
+    await _analytics.logEvent(
+      name: 'filter_contributions',
+      parameters: filters,
+    );
+  }
+
+  Future<void> logExportContributions({required String format, required int count}) async {
+    await _analytics.logEvent(
+      name: 'export_contributions',
+      parameters: {
+        'format': format,
+        'count': count,
+      },
+    );
+  }
+
+  Future<void> logDownloadReceipt({required String receiptId, required String contributionId}) async {
+    await _analytics.logEvent(
+      name: 'download_receipt',
+      parameters: {
+        'receipt_id': receiptId,
+        'contribution_id': contributionId,
+      },
+    );
+  }
+
+  Future<void> logUpdateInvestmentPreferences({required String key, required dynamic value}) async {
+    await _analytics.logEvent(
+      name: 'update_investment_preferences',
+      parameters: {
+        'key': key,
+        'value': value.toString(),
       },
     );
   }

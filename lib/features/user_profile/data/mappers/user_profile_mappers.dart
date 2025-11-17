@@ -21,7 +21,7 @@ T? _safeEnum<T>(List<T> values, String? name, T? fallback) {
   }
 }
 
-String? _string(dynamic v) => v == null ? null : v.toString();
+String? _string(dynamic v) => v?.toString();
 int? _int(dynamic v) {
   if (v == null) return null;
   if (v is int) return v;

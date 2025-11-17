@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "710632497382",
+    "firebase_url": "https://social-impact-mvp-prod-b6805-default-rtdb.firebaseio.com",
     "project_id": "social-impact-mvp-prod-b6805",
     "storage_bucket": "social-impact-mvp-prod-b6805.firebasestorage.app"
   },

@@ -65,7 +65,7 @@ class UserProfileFirestoreDataSource {
         .limit(limit);
 
     if (startAfter != null) {
-      query = (query as Query<Map<String, dynamic>>).startAfterDocument(startAfter);
+      query = (query).startAfterDocument(startAfter);
     }
 
     final snap = await query.get();

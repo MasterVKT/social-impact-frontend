@@ -59,6 +59,9 @@ dependencies:
   # File System
   path_provider: ^2.1.1
 
+  # Sharing (MVP Required)
+  share_plus: ^7.2.2
+
   # HTTP et APIs
   dio: ^5.4.0
   http: ^1.1.2

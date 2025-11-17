@@ -2,9 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/services/analytics/analytics_service.dart';
 import '../widgets/overview/overview_summary_card.dart';
 import '../widgets/overview/overview_top_investments.dart';
 import '../widgets/overview/overview_allocation_chart.dart';
+import '../widgets/portfolio/portfolio_list.dart';
+import '../widgets/portfolio/portfolio_breakdown.dart';
+import '../widgets/history/history_table.dart';
+import '../widgets/performance/performance_kpis.dart';
+import '../widgets/receipts/receipts_list.dart';
+import '../widgets/preferences/investment_preferences.dart';
 import '../../../../shared/widgets/responsive/responsive_layout.dart';
 import '../../../../shared/widgets/adaptive/adaptive_text_styles.dart';
 import '../../../../shared/constants/spacing.dart';
@@ -16,7 +24,8 @@ class InvestmentsScreen extends ConsumerStatefulWidget {
   ConsumerState<InvestmentsScreen> createState() => _InvestmentsScreenState();
 }
 
-class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with SingleTickerProviderStateMixin {
+class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -33,9 +42,24 @@ class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with Sing
     });
   }
 
-  void _logViewInvestmentsPage() {}
+  void _logViewInvestmentsPage() {
+    AnalyticsService.instance.logViewInvestmentsPage();
+  }
 
-  void _logCurrentTab() {}
+  void _logCurrentTab() {
+    final tabs = [
+      'overview',
+      'portfolio',
+      'history',
+      'performance',
+      'receipts',
+      'preferences'
+    ];
+    if (_tabController.index >= 0 && _tabController.index < tabs.length) {
+      AnalyticsService.instance
+          .logViewInvestmentsTab(tab: tabs[_tabController.index]);
+    }
+  }
 
   @override
   void dispose() {
@@ -55,13 +79,49 @@ class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with Sing
   Widget _buildMobile(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Investments', style: AdaptiveTextStyles.titleLarge(context)),
+        title:
+            Text('Investments', style: AdaptiveTextStyles.titleLarge(context)),
+        actions: [
+          IconButton(
+            onPressed: () => _navigateToSearch(context),
+            icon: const Icon(Icons.search),
+            tooltip: 'Search Investments',
+          ),
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: ListTile(
+                  leading: Icon(Icons.download),
+                  title: Text('Export Portfolio'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'settings',
+                child: ListTile(
+                  leading: Icon(Icons.settings),
+                  title: Text('Portfolio Settings'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'help',
+                child: ListTile(
+                  leading: Icon(Icons.help_outline),
+                  title: Text('Help & Support'),
+                ),
+              ),
+            ],
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
           tabs: const [
             Tab(text: 'Overview', icon: Icon(Icons.dashboard_outlined)),
-            Tab(text: 'Portfolio', icon: Icon(Icons.account_balance_wallet_outlined)),
+            Tab(
+                text: 'Portfolio',
+                icon: Icon(Icons.account_balance_wallet_outlined)),
             Tab(text: 'History', icon: Icon(Icons.history_outlined)),
             Tab(text: 'Performance', icon: Icon(Icons.show_chart)),
             Tab(text: 'Receipts', icon: Icon(Icons.receipt_long_outlined)),
@@ -73,32 +133,62 @@ class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with Sing
         controller: _tabController,
         children: [
           _buildOverview(context),
-          _placeholder(context, 'Portfolio'),
-          _placeholder(context, 'History'),
-          _placeholder(context, 'Performance'),
-          _placeholder(context, 'Receipts & Documents'),
-          _placeholder(context, 'Preferences'),
+          _buildPortfolio(context),
+          _buildHistory(context),
+          _buildPerformance(context),
+          _buildReceipts(context),
+          _buildPreferences(context),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _navigateToBrowse(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Invest'),
       ),
     );
   }
 
   Widget _buildTablet(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Investments', style: AdaptiveTextStyles.titleLarge(context))),
+      appBar: AppBar(
+        title:
+            Text('Investments', style: AdaptiveTextStyles.titleLarge(context)),
+        actions: [
+          IconButton(
+            onPressed: () => _navigateToSearch(context),
+            icon: const Icon(Icons.search),
+            tooltip: 'Search',
+          ),
+          IconButton(
+            onPressed: () => _handleMenuAction('export'),
+            icon: const Icon(Icons.download),
+            tooltip: 'Export',
+          ),
+        ],
+      ),
       body: Row(
         children: [
           NavigationRail(
             selectedIndex: _tabController.index,
-            onDestinationSelected: (i) => setState(() => _tabController.index = i),
+            onDestinationSelected: (i) =>
+                setState(() => _tabController.index = i),
             extended: true,
             destinations: const [
-              NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), label: Text('Overview')),
-              NavigationRailDestination(icon: Icon(Icons.account_balance_wallet_outlined), label: Text('Portfolio')),
-              NavigationRailDestination(icon: Icon(Icons.history_outlined), label: Text('History')),
-              NavigationRailDestination(icon: Icon(Icons.show_chart), label: Text('Performance')),
-              NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), label: Text('Receipts')),
-              NavigationRailDestination(icon: Icon(Icons.tune_outlined), label: Text('Preferences')),
+              NavigationRailDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  label: Text('Overview')),
+              NavigationRailDestination(
+                  icon: Icon(Icons.account_balance_wallet_outlined),
+                  label: Text('Portfolio')),
+              NavigationRailDestination(
+                  icon: Icon(Icons.history_outlined), label: Text('History')),
+              NavigationRailDestination(
+                  icon: Icon(Icons.show_chart), label: Text('Performance')),
+              NavigationRailDestination(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  label: Text('Receipts')),
+              NavigationRailDestination(
+                  icon: Icon(Icons.tune_outlined), label: Text('Preferences')),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -107,22 +197,49 @@ class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with Sing
               index: _tabController.index,
               children: [
                 _buildOverview(context),
-                _placeholder(context, 'Portfolio'),
-                _placeholder(context, 'History'),
-                _placeholder(context, 'Performance'),
-                _placeholder(context, 'Receipts & Documents'),
-                _placeholder(context, 'Preferences'),
+                _buildPortfolio(context),
+                _buildHistory(context),
+                _buildPerformance(context),
+                _buildReceipts(context),
+                _buildPreferences(context),
               ],
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _navigateToBrowse(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Invest'),
       ),
     );
   }
 
   Widget _buildDesktop(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Investments', style: AdaptiveTextStyles.titleLarge(context))),
+      appBar: AppBar(
+        title:
+            Text('Investments', style: AdaptiveTextStyles.titleLarge(context)),
+        actions: [
+          TextButton.icon(
+            onPressed: () => _navigateToBrowse(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Invest'),
+          ),
+          const SizedBox(width: Spacing.sm),
+          IconButton(
+            onPressed: () => _navigateToSearch(context),
+            icon: const Icon(Icons.search),
+            tooltip: 'Search',
+          ),
+          IconButton(
+            onPressed: () => _handleMenuAction('export'),
+            icon: const Icon(Icons.download),
+            tooltip: 'Export',
+          ),
+          const SizedBox(width: Spacing.sm),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(Spacing.lg),
         child: _buildOverview(context),
@@ -131,11 +248,11 @@ class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with Sing
   }
 
   Widget _buildOverview(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(Spacing.lg),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(Spacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           OverviewSummaryCard(),
           SizedBox(height: Spacing.lg),
           OverviewTopInvestments(),
@@ -146,9 +263,61 @@ class _InvestmentsScreenState extends ConsumerState<InvestmentsScreen> with Sing
     );
   }
 
-  Widget _placeholder(BuildContext context, String title) {
-    return Center(
-      child: Text(title, style: AdaptiveTextStyles.titleMedium(context)),
+  Widget _buildPortfolio(BuildContext context) {
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(Spacing.lg),
+      child: Column(
+        children: [
+          PortfolioBreakdown(),
+          SizedBox(height: Spacing.lg),
+          PortfolioList(),
+        ],
+      ),
     );
+  }
+
+  Widget _buildHistory(BuildContext context) {
+    return const HistoryTable();
+  }
+
+  Widget _buildPerformance(BuildContext context) {
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(Spacing.lg),
+      child: PerformanceKPIs(),
+    );
+  }
+
+  Widget _buildReceipts(BuildContext context) {
+    return const ReceiptsList();
+  }
+
+  Widget _buildPreferences(BuildContext context) {
+    return const InvestmentPreferences();
+  }
+
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'export':
+        AnalyticsService.instance
+            .logExportContributions(format: 'csv', count: 0);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Portfolio export feature coming soon')),
+        );
+        break;
+      case 'settings':
+        context.go('/portfolio/settings');
+        break;
+      case 'help':
+        context.go('/help');
+        break;
+    }
+  }
+
+  void _navigateToSearch(BuildContext context) {
+    context.go('/investments/search');
+  }
+
+  void _navigateToBrowse(BuildContext context) {
+    context.go('/browse');
   }
 }

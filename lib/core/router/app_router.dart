@@ -12,7 +12,7 @@ import '../../features/auth/presentation/screens/email_verification_screen.dart'
 import '../../features/auth/presentation/screens/kyc/kyc_main_screen.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/domain/entities/user.dart';
-import '../../features/investments/presentation/screens/portfolio_screen.dart';
+import '../../features/investments/presentation/screens/investments_screen.dart';
 import '../../features/investments/presentation/screens/browse_projects_screen.dart';
 import '../../features/user_profile/presentation/screens/user_profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -119,16 +119,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _buildAdaptivePage(
               context: context,
               state: state,
-              child: const PortfolioScreen(),
+              child: const InvestmentsScreen(),
             ),
           ),
           GoRoute(
             path: '/portfolio',
-            pageBuilder: (context, state) => _buildAdaptivePage(
-              context: context,
-              state: state,
-              child: const PortfolioScreen(),
-            ),
+            redirect: (context, state) => '/investments',
           ),
           GoRoute(
             path: '/browse',

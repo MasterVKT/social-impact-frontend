@@ -15,7 +15,7 @@ class UserStorageDataSource {
   }) async {
     final storage = _storage as dynamic;
     final ref = storage.ref().child('users').child(uid).child('profile.jpg');
-    final metadata = (storage is dynamic) ? (new _SettableMetadataProxy(contentType: contentType, cacheControl: 'public, max-age=3600')) : null;
+    final metadata = (storage is dynamic) ? (_SettableMetadataProxy(contentType: contentType, cacheControl: 'public, max-age=3600')) : null;
     await ref.putData(bytes, metadata);
     return await ref.getDownloadURL();
   }

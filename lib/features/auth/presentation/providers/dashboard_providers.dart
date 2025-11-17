@@ -212,18 +212,23 @@ Future<DashboardStats> _getInvestorStats(
     }
   }
 
-  final activeProjectsQuery = await firestore
-      .collection('projects')
-      .where(FieldPath.documentId, whereIn: supportedProjectIds.toList())
-      .where('status', isEqualTo: 'active')
-      .get();
+  // Only query projects if there are any supported project IDs
+  int activeProjectsCount = 0;
+  if (supportedProjectIds.isNotEmpty) {
+    final activeProjectsQuery = await firestore
+        .collection('projects')
+        .where(FieldPath.documentId, whereIn: supportedProjectIds.toList())
+        .where('status', isEqualTo: 'active')
+        .get();
+    activeProjectsCount = activeProjectsQuery.docs.length;
+  }
 
   final totalReturn = currentPortfolioValue - totalAmountInvested;
 
   return DashboardStats(
     totalInvestments: investmentsQuery.docs.length,
     totalAmountInvested: totalAmountInvested,
-    activeProjects: activeProjectsQuery.docs.length,
+    activeProjects: activeProjectsCount,
     projectsSupported: supportedProjectIds.length,
     expectedReturns: expectedReturns,
     currentPortfolioValue: currentPortfolioValue,

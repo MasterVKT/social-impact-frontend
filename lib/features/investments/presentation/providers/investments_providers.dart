@@ -44,9 +44,9 @@ final performanceProvider = FutureProvider.autoDispose
     .family<Map<String, dynamic>, String>((ref, range) async {
   // Calcul simple côté client à partir des contributions
   final contributions = await ref.watch(contributionsProvider(null).future);
-  final total = contributions.fold<int>(0, (sum, c) {
+  final total = contributions.fold<int>(0, (total, c) {
     final cents = (c as dynamic).amountCents as int? ?? 0;
-    return sum + cents;
+    return total + cents;
   });
   return {
     'kpis': {
