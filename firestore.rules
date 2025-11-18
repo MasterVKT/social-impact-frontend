@@ -1,87 +1,321 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection - read/write access for authenticated users to their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // KYC data collection - read/write access for authenticated users to their own data
-    match /kyc_data/{document} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-    
-    // KYC documents collection - read/write access for authenticated users to their own data
-    match /kyc_documents/{document} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Verification steps collection - read/write access for authenticated users
-    match /verification_steps/{document} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Risk assessments collection - read/write access for authenticated users
-    match /risk_assessments/{document} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Projects collection - read access for all authenticated users, write for creators
-    match /projects/{projectId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (
-        // Allow creation if user is the creator
-        (request.auth.uid == request.resource.data.creatorId) ||
-        // Allow update if user is the creator
-        (request.auth.uid == resource.data.creatorId)
-      );
-    }
-    
-    // Investments collection - read/write access for authenticated users to their own data
-    match /investments/{document} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.investorId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.investorId;
-    }
-    
-    // Contributions collection - read/write access for authenticated users to their own data
-    match /contributions/{document} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // User portfolio collection - read/write access for authenticated users to their own portfolio
+    // Check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Get user data
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Check user role
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    // Check if user has any of the specified roles
+    function hasAnyRole(roles) {
+      return isAuthenticated() && getUserData().role in roles;
+    }
+
+    // Check if user is admin
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Check if user is investor/contributor
+    function isInvestor() {
+      return hasRole('investor');
+    }
+
+    // Check if user is organization/project creator
+    function isOrganization() {
+      return hasRole('organization');
+    }
+
+    // Check if user is auditor
+    function isAuditor() {
+      return hasRole('auditor');
+    }
+
+    // Check if user account is active
+    function isActiveUser() {
+      return isAuthenticated() && getUserData().accountStatus == 'active';
+    }
+
+    // Check KYC status
+    function hasKYCLevel(level) {
+      return isAuthenticated() && getUserData().kyc.level >= level;
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+
+    match /users/{userId} {
+      // Anyone authenticated can read their own profile
+      allow read: if isOwner(userId);
+
+      // Users can create their own profile during registration
+      allow create: if isOwner(userId);
+
+      // Users can update their own profile (except role and accountStatus)
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'accountStatus', 'uid']);
+
+      // Only admins can delete users or change roles/status
+      allow delete: if isAdmin();
+      allow read, update: if isAdmin();
+
+      // Activity subcollection
+      match /activity/{activityId} {
+        allow read: if isOwner(userId);
+        allow create: if isAuthenticated();
+      }
+
+      // Favorites subcollection
+      match /favorites/{favoriteId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ============================================
+    // PROJECTS COLLECTION
+    // ============================================
+
+    match /projects/{projectId} {
+      // Anyone can read approved/active projects
+      allow read: if resource.data.status in ['approved', 'fundingActive', 'implementation', 'completed']
+        || isOwner(resource.data.creatorId)
+        || isAdmin();
+
+      // Organizations can create projects (with KYC Level 2)
+      allow create: if isOrganization()
+        && isActiveUser()
+        && hasKYCLevel(2)
+        && request.resource.data.creatorId == request.auth.uid
+        && request.resource.data.status == 'draft';
+
+      // Project creators can update their own projects
+      allow update: if isOwner(resource.data.creatorId)
+        && isActiveUser()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['creatorId', 'createdAt', 'currentFunding']);
+
+      // Admins can update any project (moderation)
+      allow update: if isAdmin();
+
+      // Only admins can delete projects
+      allow delete: if isAdmin();
+
+      // Milestones subcollection
+      match /milestones/{milestoneId} {
+        allow read: if get(/databases/$(database)/documents/projects/$(projectId)).data.status in ['approved', 'fundingActive', 'implementation', 'completed']
+          || isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.creatorId)
+          || isAuditor()
+          || isAdmin();
+
+        allow create, update: if isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.creatorId)
+          && isActiveUser();
+
+        allow update: if isAuditor()
+          && isActiveUser()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'auditId', 'reviewedAt']);
+
+        allow read, write: if isAdmin();
+      }
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isActiveUser();
+        allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      }
+    }
+
+    // ============================================
+    // CONTRIBUTIONS COLLECTION
+    // ============================================
+
+    match /contributions/{contributionId} {
+      // Users can read their own contributions
+      allow read: if isOwner(resource.data.contributorId);
+
+      // Project creators can read contributions to their projects
+      allow read: if exists(/databases/$(database)/documents/projects/$(resource.data.projectId))
+        && isOwner(get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.creatorId);
+
+      // Only authenticated users with KYC can contribute
+      allow create: if isAuthenticated()
+        && isActiveUser()
+        && hasKYCLevel(1)
+        && request.resource.data.contributorId == request.auth.uid;
+
+      // Admins can read all contributions
+      allow read: if isAdmin();
+    }
+
+    // ============================================
+    // INVESTMENTS COLLECTION
+    // ============================================
+
+    match /investments/{investmentId} {
+      allow read: if isOwner(resource.data.investorId);
+      allow create: if isAuthenticated() && request.resource.data.investorId == request.auth.uid;
+      allow read: if isAdmin();
+    }
+
+    // ============================================
+    // USER PORTFOLIO COLLECTION
+    // ============================================
+
     match /user_portfolio/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
-    
-    // Audits collection - read/write access for auditors and admins
-    match /audits/{document} {
-      allow read, write: if request.auth != null;
+
+    // ============================================
+    // AUDITS COLLECTION
+    // ============================================
+
+    match /audits/{auditId} {
+      // Assigned auditors can read their audits
+      allow read: if isOwner(resource.data.auditorId);
+
+      // Project creators can read audits for their milestones
+      allow read: if exists(/databases/$(database)/documents/projects/$(resource.data.projectId))
+        && isOwner(get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.creatorId);
+
+      // Audits created/assigned via Cloud Functions or admin
+      allow create: if isAdmin();
+
+      // Auditors can update their assigned audits
+      allow update: if isOwner(resource.data.auditorId)
+        && isActiveUser()
+        && isAuditor()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['score', 'comments', 'status', 'verdict', 'reviewedAt']);
+
+      // Admins have full access
+      allow read, write: if isAdmin();
     }
-    
-    // Activities collection - read/write access for authenticated users to their own data
+
+    // ============================================
+    // NOTIFICATIONS COLLECTION
+    // ============================================
+
+    match /notifications/{notificationId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated();
+      allow update: if isOwner(resource.data.userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // ============================================
+    // ANALYTICS COLLECTION
+    // ============================================
+
+    match /analytics/{analyticsId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create, update: if isAuthenticated();
+    }
+
+    // ============================================
+    // TRANSACTIONS COLLECTION
+    // ============================================
+
+    match /transactions/{transactionId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated();
+      allow read: if isAdmin();
+    }
+
+    // ============================================
+    // SETTINGS COLLECTION
+    // ============================================
+
+    match /settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ============================================
+    // KYC COLLECTIONS
+    // ============================================
+
+    match /kyc_data/{document} {
+      allow read, write: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+    }
+
+    match /kyc_documents/{document} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /verification_steps/{document} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /risk_assessments/{document} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ============================================
+    // SUPPORT TICKETS
+    // ============================================
+
+    match /support_tickets/{ticketId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated()
+        && isActiveUser()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId);
+      allow read, update: if isAdmin();
+    }
+
+    // ============================================
+    // ACTIVITIES COLLECTION
+    // ============================================
+
     match /activities/{document} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
     }
-    
-    // Notifications collection - read/write access for authenticated users to their own data
-    match /notifications/{document} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-    
-    // Reports collection - read access for authenticated users
+
+    // ============================================
+    // REPORTS COLLECTION
+    // ============================================
+
     match /reports/{document} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
-    
-    // Analytics collection - read access for authenticated users
-    match /analytics/{document} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+
+    // ============================================
+    // AUDIT TRAIL (Compliance)
+    // ============================================
+
+    match /audit_trail/{auditTrailId} {
+      allow read: if isAdmin();
+      // No direct writes - only via Cloud Functions
+    }
+
+    // ============================================
+    // DEFAULT DENY ALL
+    // ============================================
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

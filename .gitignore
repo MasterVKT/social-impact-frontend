@@ -43,3 +43,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment Variables (NEVER commit these!)
+.env
+.env.local
+.env.*.local
+
+# Firebase configuration files (add these manually when needed)
+# android/app/google-services.json
+# ios/Runner/GoogleService-Info.plist
+
+# Stripe keys (security)
+stripe_keys.dart
+
+# API Keys (security)
+api_keys.dart
