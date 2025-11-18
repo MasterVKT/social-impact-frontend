@@ -24,11 +24,9 @@ export {onContributionCreated} from './payments/on-contribution-created';
 export {releaseFundsToCreator} from './payments/release-funds';
 
 export {assignAuditToAuditor} from './audits/assign-audit';
-export {onMilestoneSubmitted} from './audits/on-milestone-submitted';
-export {onAuditCompleted} from './audits/on-audit-completed';
+export {onMilestoneSubmitted, onContributionCreated as onContributionCreatedNotif} from './notifications/send-notification';
 
 export {sendNotification} from './notifications/send-notification';
-export {onNewNotification} from './notifications/on-new-notification';
 
 export {onProjectCreated} from './projects/on-project-created';
 export {approveProject} from './projects/approve-project';
