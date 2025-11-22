@@ -17,10 +17,10 @@ dependencies:
   firebase_core: ^2.15.0
   firebase_auth: ^4.7.2
   cloud_firestore: ^4.8.4
-  # firebase_storage: ^11.2.5  # Temporarily disabled due to web compilation issues
+  firebase_storage: ^11.2.5
   firebase_analytics: ^10.4.5
   cloud_functions: ^4.3.3
-  # firebase_messaging: ^14.6.6  # Temporarily disabled due to web compilation issues
+  firebase_messaging: ^14.6.6
 
   # State Management Universal
   flutter_riverpod: ^2.4.9
@@ -66,6 +66,27 @@ dependencies:
   dio: ^5.4.0
   http: ^1.1.2
 
+  # Stripe Payment Integration
+  flutter_stripe: ^10.1.1
+
+  # Image Handling
+  image_picker: ^1.0.4
+  image_cropper: ^5.0.1
+  file_picker: ^6.1.1
+
+  # Charts & Visualizations
+  fl_chart: ^0.65.0
+
+  # Environment Variables
+  flutter_dotenv: ^5.1.0
+
+  # PDF Generation
+  pdf: ^3.10.7
+  printing: ^5.11.1
+
+  # CSV Export
+  csv: ^5.1.1
+
   # Utils
   logger: ^2.0.2+1
   equatable: ^2.0.5
@@ -100,6 +121,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - .env
 
 flutter_launcher_icons:
   android: true
